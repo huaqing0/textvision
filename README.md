@@ -2,85 +2,51 @@
 
 [中文](README.zh-CN.md)
 
-> Let text-only models "see" images
-
-**The problem:** When you send a screenshot to DeepSeek or any text-only model, it says "I can't process images." This tool converts the image into OCR-extracted text before it reaches the model, so the model sees words instead of pixels.
+**A skill that auto-detects whether a model has vision — if not, converts images to text automatically.**
 
 ---
 
-## How it works
+## What this skill does
 
-Zero third-party OCR services. Uses what your OS already has:
+1. **Detects** whether the model has vision capability
+2. If yes — passes the image through untouched
+3. If no — runs OCR to extract all visible text from the image
+4. Packages the result as a structured text evidence packet
+5. Sends it to the model, which can now read and reason from it
 
-| Platform | OCR Engine | Dependencies |
-|----------|-----------|-------------|
-| macOS | Apple Vision | None |
-| Windows | Windows native OCR | None |
-| Linux | PaddleOCR | Auto-installed |
-| All platforms | SVG XML parsing | None |
+The model never sees "I can't process images." It receives structured text with
+extracted content, confidence scores, file metadata, and a hard rule: *do not
+invent visual details that weren't found in the text.*
 
-PaddleOCR is available as an optional high-accuracy backend on macOS and Windows.
+---
+
+## Example
+
+```
+Input:  screenshot of a terminal error "connection refused on port 3000"
+Output: evidence packet containing:
+        - "connection refused on port 3000" (confidence: 1.000)
+        - filename, format, dimensions
+        - confirmed facts, limitations, answering instructions
+Result: the text-only model can read the error and suggest a fix
+```
+
+---
 
 ## Install
 
-On macOS and Windows, only [Pillow](https://python-pillow.org/) is needed for reading image metadata. The OCR engine is built into your OS.
-
 ```bash
-# macOS / Linux
 bash install.sh
-
-# With optional PaddleOCR for higher accuracy
-bash install.sh --with-paddleocr
 ```
 
-```powershell
-# Windows
-.\install.ps1
-
-# Optional PaddleOCR
-.\install.ps1 -WithPaddleOCR
-```
-
-## Usage
+## Use
 
 ```bash
-# Basic
 image2context screenshot.png
-
-# Include your question for richer context
-image2context screenshot.png --question "What does this error mean?"
-
-# Override the default OCR backend
-image2context screenshot.png --ocr-backend paddleocr
-image2context screenshot.png --ocr-backend native
+image2context error.png --question "Why did the build fail?"
 ```
 
-Outputs structured Markdown you can paste directly to any model.
-
-## Design principle
-
-**Don't pretend to see what isn't there.**
-
-OCR extracts text. It does not perform visual understanding. Every output packet explicitly separates:
-
-- `confirmed_facts` — what OCR confirmed it found
-- `extracted_text` — the text, with confidence scores
-- `uncertainties` — limitations and unknowns
-
-The final line is always: "Do not invent non-text visual details."
-
-## Good for
-
-- Forwarding screenshots, terminal errors, and code snippets to text-only models like DeepSeek
-- Giving non-vision agents the ability to handle image-text mixed tasks
-- Converting SVG diagrams, menus, and settings pages into searchable text
-- Any situation where the model says "I can't see images"
-
-## Not for
-
-- Tasks requiring understanding of faces, emotions, scenes, colors, or composition
-- Images with minimal text where visual content is what matters
-- Models that already have native vision and received your image successfully
+---
 
 ## License
 
