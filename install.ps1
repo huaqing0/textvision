@@ -11,7 +11,7 @@ $ErrorActionPreference = "Stop"
 $RootDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 if ([string]::IsNullOrWhiteSpace($Target)) {
-    $Target = if ($env:IMAGE_CONTEXT_BRIDGE_TARGET) { $env:IMAGE_CONTEXT_BRIDGE_TARGET } else { "claude" }
+    $Target = if ($env:IMAGE_CONTEXT_BRIDGE_TARGET) { $env:IMAGE_CONTEXT_BRIDGE_TARGET } else { "none" }
 }
 if ([string]::IsNullOrWhiteSpace($AppDir)) {
     $AppDir = if ($env:IMAGE_CONTEXT_BRIDGE_APP_DIR) { $env:IMAGE_CONTEXT_BRIDGE_APP_DIR } else { Join-Path $HOME ".image-context-bridge" }

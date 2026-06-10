@@ -76,7 +76,7 @@ SVG text extraction is handled separately and does not use an OCR backend.
 
 Recommended one-line install, no manual clone required.
 
-By default, the installer installs the CLI plus the Claude Code Skill only.
+By default, the installer is agent-neutral: it installs only the local runtime and CLI commands. It does not write into Claude Code, Codex, or other agent skill directories unless you choose a target.
 
 macOS or Linux:
 
@@ -90,19 +90,24 @@ Windows PowerShell:
 powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.ps1 | iex"
 ```
 
-Choose a different Skill target:
+Install a Skill wrapper for a specific agent:
 
 ```bash
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target claude
 curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target codex
 curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target agents
-curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target all
-curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target none
 ```
 
-Windows PowerShell target selection:
+Install all known Skill targets only if you explicitly want that:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target all
+```
+
+Windows PowerShell target selection example:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -Command '$env:IMAGE_CONTEXT_BRIDGE_TARGET="codex"; irm https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.ps1 | iex'
+powershell -NoProfile -ExecutionPolicy Bypass -Command '$env:IMAGE_CONTEXT_BRIDGE_TARGET="claude"; irm https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.ps1 | iex'
 ```
 
 Choose install paths:
@@ -153,7 +158,8 @@ The installer creates:
 - `~/.image-context-bridge/testdata/sample.svg` for post-install verification.
 - `~/.local/bin/image2context`
 - `~/.local/bin/auto-image-fallback`
-- `~/.claude/skills/image-context/` by default.
+
+If you pass `--target claude`, `--target codex`, `--target agents`, or `--target all`, it also creates the selected `<skill-root>/image-context` directory.
 
 Make sure `~/.local/bin` is in your `PATH`. Restart Claude Code, Codex, or your agent app after installation so it can reload the Skill.
 
@@ -237,6 +243,12 @@ image2context screenshot.png --tesseract-lang eng+chi_sim
 ## Skill Usage
 
 After installation, skill-aware agents can load `image-context`.
+
+The generic install command does not install an agent Skill by default. To install the Claude Code wrapper, run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target claude
+```
 
 Automatic triggering is best-effort. The Skill can be invoked implicitly when an agent sees a local image path and the model is known to be text-only or image input has failed. If the model's image capability is unknown and the agent can send images directly, the intended flow is to try direct image input first, then fallback to `image2context` only if direct input fails.
 

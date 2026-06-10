@@ -76,7 +76,7 @@ SVG 文本提取是独立路径，不使用 OCR 后端。
 
 推荐使用一行命令安装，不需要手动 clone 仓库。
 
-默认只安装 CLI 和 Claude Code Skill。
+默认是 agent-neutral：只安装本地 runtime 和 CLI 命令，不会写入 Claude Code、Codex 或其他 agent 的 Skill 目录。需要哪个 agent，再显式选择目标。
 
 macOS 或 Linux：
 
@@ -90,19 +90,24 @@ Windows PowerShell：
 powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.ps1 | iex"
 ```
 
-选择其他 Skill 目标：
+给指定 agent 安装 Skill 封装：
 
 ```bash
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target claude
 curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target codex
 curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target agents
-curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target all
-curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target none
 ```
 
-Windows PowerShell 选择目标：
+只有明确想一次装到所有已知目录时，才使用：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target all
+```
+
+Windows PowerShell 选择目标示例：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -Command '$env:IMAGE_CONTEXT_BRIDGE_TARGET="codex"; irm https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.ps1 | iex'
+powershell -NoProfile -ExecutionPolicy Bypass -Command '$env:IMAGE_CONTEXT_BRIDGE_TARGET="claude"; irm https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.ps1 | iex'
 ```
 
 选择安装路径：
@@ -153,7 +158,8 @@ cd image-context-bridge
 - `~/.image-context-bridge/testdata/sample.svg`：安装后自检用的示例文件。
 - `~/.local/bin/image2context`
 - `~/.local/bin/auto-image-fallback`
-- 默认安装到 `~/.claude/skills/image-context/`。
+
+如果传入 `--target claude`、`--target codex`、`--target agents` 或 `--target all`，才会额外创建对应的 `<skill-root>/image-context` 目录。
 
 请确认 `~/.local/bin` 在 `PATH` 里。安装后重启 Claude Code、Codex 或其他 agent 应用，让它重新加载 Skill。
 
@@ -237,6 +243,12 @@ image2context screenshot.png --tesseract-lang eng+chi_sim
 ## Skill 用法
 
 安装后，支持 Skill 的 agent 可以加载 `image-context`。
+
+通用安装命令默认不安装 agent Skill。如果要安装 Claude Code 封装，运行：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target claude
+```
 
 自动触发是 best-effort。agent 看到本地图片路径，并且已知当前模型是纯文本模型或图片输入已经失败时，Skill 可以被隐式调用。如果模型图片能力未知，但 agent 可以直接发送图片，预期流程是先尝试直传图片；只有直传失败后，才 fallback 到 `image2context`。
 
