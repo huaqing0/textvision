@@ -1,12 +1,38 @@
 param(
     [switch]$WithPaddleOCR,
-    [switch]$NoPaddleOCR
+    [switch]$NoPaddleOCR,
+    [string]$Target = "",
+    [string]$AppDir = "",
+    [string]$BinDir = "",
+    [string]$SkillDir = ""
 )
 
 $ErrorActionPreference = "Stop"
 $RootDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$AppDir = Join-Path $HOME ".image-context-bridge"
-$BinDir = Join-Path $HOME ".local\bin"
+
+if ([string]::IsNullOrWhiteSpace($Target)) {
+    $Target = if ($env:IMAGE_CONTEXT_BRIDGE_TARGET) { $env:IMAGE_CONTEXT_BRIDGE_TARGET } else { "claude" }
+}
+if ([string]::IsNullOrWhiteSpace($AppDir)) {
+    $AppDir = if ($env:IMAGE_CONTEXT_BRIDGE_APP_DIR) { $env:IMAGE_CONTEXT_BRIDGE_APP_DIR } else { Join-Path $HOME ".image-context-bridge" }
+}
+if ([string]::IsNullOrWhiteSpace($BinDir)) {
+    $BinDir = if ($env:IMAGE_CONTEXT_BRIDGE_BIN_DIR) { $env:IMAGE_CONTEXT_BRIDGE_BIN_DIR } else { Join-Path $HOME ".local\bin" }
+}
+if ([string]::IsNullOrWhiteSpace($SkillDir) -and $env:IMAGE_CONTEXT_BRIDGE_SKILL_DIR) {
+    $SkillDir = $env:IMAGE_CONTEXT_BRIDGE_SKILL_DIR
+}
+if (-not [string]::IsNullOrWhiteSpace($SkillDir)) {
+    $Target = "custom"
+}
+$AllowedTargets = @("claude", "codex", "agents", "all", "none", "custom")
+if ($AllowedTargets -notcontains $Target) {
+    throw "Unknown target: $Target. Use claude, codex, agents, all, none, or custom."
+}
+if ($Target -eq "custom" -and [string]::IsNullOrWhiteSpace($SkillDir)) {
+    throw "Custom target requires -SkillDir or IMAGE_CONTEXT_BRIDGE_SKILL_DIR."
+}
+
 $VenvDir = Join-Path $AppDir ".venv"
 
 $InstallPaddle = $false
@@ -16,6 +42,12 @@ if ($NoPaddleOCR) { $InstallPaddle = $false }
 Write-Host "Installing Image Context Bridge..."
 Write-Host "OS: Windows"
 Write-Host "Install PaddleOCR: $InstallPaddle"
+Write-Host "Install target: $Target"
+Write-Host "App dir: $AppDir"
+Write-Host "Bin dir: $BinDir"
+if (-not [string]::IsNullOrWhiteSpace($SkillDir)) {
+    Write-Host "Custom skill dir: $SkillDir"
+}
 
 New-Item -ItemType Directory -Force -Path $AppDir, $BinDir, (Join-Path $AppDir "scripts"), (Join-Path $AppDir "hooks"), (Join-Path $AppDir "skills\image-context"), (Join-Path $AppDir "testdata") | Out-Null
 Copy-Item -Force -Recurse (Join-Path $RootDir "scripts\*") (Join-Path $AppDir "scripts")
@@ -47,13 +79,25 @@ $FallbackCmd = Join-Path $BinDir "auto-image-fallback.cmd"
 "$Py" "$AppDir\hooks\auto_image_fallback.py" %*
 "@ | Set-Content -Encoding ASCII $FallbackCmd
 
-$AgentSkillDir = Join-Path $HOME ".agents\skills\image-context"
-$ClaudeSkillDir = Join-Path $HOME ".claude\skills\image-context"
-$CodexSkillDir = Join-Path $HOME ".codex\skills\image-context"
-New-Item -ItemType Directory -Force -Path $AgentSkillDir, $ClaudeSkillDir, $CodexSkillDir | Out-Null
-Copy-Item -Force -Recurse (Join-Path $RootDir "skills\image-context\*") $AgentSkillDir
-Copy-Item -Force -Recurse (Join-Path $RootDir "skills\image-context\*") $ClaudeSkillDir
-Copy-Item -Force -Recurse (Join-Path $RootDir "skills\image-context\*") $CodexSkillDir
+function Install-SkillRoot([string]$SkillRoot) {
+    $Dest = Join-Path $SkillRoot "image-context"
+    New-Item -ItemType Directory -Force -Path $Dest | Out-Null
+    Copy-Item -Force -Recurse (Join-Path $RootDir "skills\image-context\*") $Dest
+    Write-Host "Skill: $Dest"
+}
+
+switch ($Target) {
+    "claude" { Install-SkillRoot (Join-Path $HOME ".claude\skills") }
+    "codex" { Install-SkillRoot (Join-Path $HOME ".codex\skills") }
+    "agents" { Install-SkillRoot (Join-Path $HOME ".agents\skills") }
+    "all" {
+        Install-SkillRoot (Join-Path $HOME ".claude\skills")
+        Install-SkillRoot (Join-Path $HOME ".codex\skills")
+        Install-SkillRoot (Join-Path $HOME ".agents\skills")
+    }
+    "custom" { Install-SkillRoot $SkillDir }
+    "none" { Write-Host "Skill: skipped (-Target none)" }
+}
 
 & $Py -m py_compile (Join-Path $AppDir "scripts\image2context.py") (Join-Path $AppDir "hooks\auto_image_fallback.py")
 

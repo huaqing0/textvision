@@ -76,6 +76,8 @@ SVG 文本提取是独立路径，不使用 OCR 后端。
 
 推荐使用一行命令安装，不需要手动 clone 仓库。
 
+默认只安装 CLI 和 Claude Code Skill。
+
 macOS 或 Linux：
 
 ```bash
@@ -86,6 +88,33 @@ Windows PowerShell：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.ps1 | iex"
+```
+
+选择其他 Skill 目标：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target codex
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target agents
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target all
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target none
+```
+
+Windows PowerShell 选择目标：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -Command '$env:IMAGE_CONTEXT_BRIDGE_TARGET="codex"; irm https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.ps1 | iex'
+```
+
+选择安装路径：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --app-dir "$HOME/Tools/image-context-bridge" --bin-dir "$HOME/bin"
+```
+
+使用自定义 Skill 根目录。安装器会创建 `<skill-root>/image-context`：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --skill-dir "$HOME/.claude/skills"
 ```
 
 选装 PaddleOCR：
@@ -124,9 +153,7 @@ cd image-context-bridge
 - `~/.image-context-bridge/testdata/sample.svg`：安装后自检用的示例文件。
 - `~/.local/bin/image2context`
 - `~/.local/bin/auto-image-fallback`
-- `~/.agents/skills/image-context/`
-- `~/.claude/skills/image-context/`
-- `~/.codex/skills/image-context/`
+- 默认安装到 `~/.claude/skills/image-context/`。
 
 请确认 `~/.local/bin` 在 `PATH` 里。安装后重启 Claude Code、Codex 或其他 agent 应用，让它重新加载 Skill。
 

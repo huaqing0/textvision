@@ -1,6 +1,10 @@
 param(
     [switch]$WithPaddleOCR,
     [switch]$NoPaddleOCR,
+    [string]$Target = $env:IMAGE_CONTEXT_BRIDGE_TARGET,
+    [string]$AppDir = $env:IMAGE_CONTEXT_BRIDGE_APP_DIR,
+    [string]$BinDir = $env:IMAGE_CONTEXT_BRIDGE_BIN_DIR,
+    [string]$SkillDir = $env:IMAGE_CONTEXT_BRIDGE_SKILL_DIR,
     [string]$Ref = $env:IMAGE_CONTEXT_BRIDGE_REF
 )
 
@@ -39,6 +43,18 @@ try {
     }
     if ($NoPaddleOCR -or $env:IMAGE_CONTEXT_BRIDGE_NO_PADDLEOCR -eq "1") {
         $InstallArgs += "-NoPaddleOCR"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($Target)) {
+        $InstallArgs += @("-Target", $Target)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($AppDir)) {
+        $InstallArgs += @("-AppDir", $AppDir)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($BinDir)) {
+        $InstallArgs += @("-BinDir", $BinDir)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($SkillDir)) {
+        $InstallArgs += @("-SkillDir", $SkillDir)
     }
 
     & (Join-Path $SourceDir.FullName "install.ps1") @InstallArgs

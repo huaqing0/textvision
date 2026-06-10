@@ -76,6 +76,8 @@ SVG text extraction is handled separately and does not use an OCR backend.
 
 Recommended one-line install, no manual clone required.
 
+By default, the installer installs the CLI plus the Claude Code Skill only.
+
 macOS or Linux:
 
 ```bash
@@ -86,6 +88,33 @@ Windows PowerShell:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.ps1 | iex"
+```
+
+Choose a different Skill target:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target codex
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target agents
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target all
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target none
+```
+
+Windows PowerShell target selection:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -Command '$env:IMAGE_CONTEXT_BRIDGE_TARGET="codex"; irm https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.ps1 | iex'
+```
+
+Choose install paths:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --app-dir "$HOME/Tools/image-context-bridge" --bin-dir "$HOME/bin"
+```
+
+Use a custom Skill root. The installer creates `<skill-root>/image-context`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --skill-dir "$HOME/.claude/skills"
 ```
 
 Optional PaddleOCR install:
@@ -124,9 +153,7 @@ The installer creates:
 - `~/.image-context-bridge/testdata/sample.svg` for post-install verification.
 - `~/.local/bin/image2context`
 - `~/.local/bin/auto-image-fallback`
-- `~/.agents/skills/image-context/`
-- `~/.claude/skills/image-context/`
-- `~/.codex/skills/image-context/`
+- `~/.claude/skills/image-context/` by default.
 
 Make sure `~/.local/bin` is in your `PATH`. Restart Claude Code, Codex, or your agent app after installation so it can reload the Skill.
 
