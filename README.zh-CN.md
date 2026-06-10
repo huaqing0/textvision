@@ -113,47 +113,74 @@ bash install.sh --no-paddleocr
 
 请确认 `~/.local/bin` 在 `PATH` 里。安装后重启 Claude Code、Codex 或其他 agent 应用，让它重新加载 Skill。
 
-## 快速验证
+## 安装后自检
+
+这一段不是日常用法，只是用仓库里的示例文件确认安装成功。
+
+请先进入仓库根目录，因为 `testdata/sample.svg` 是仓库自带的测试文件：
+
+```bash
+cd image-context-bridge
+```
+
+第一步，确认 `image2context` 命令能运行：
 
 ```bash
 image2context testdata/sample.svg --json
 ```
 
-预期提取文本包含：
+如果输出里能看到下面两行，说明 CLI 可以读取图片并提取文本：
 
 ```text
 WebSocket handshake timeout
 Reconnecting...
 ```
 
-验证 fallback hook：
+第二步，确认 fallback hook 能运行：
 
 ```bash
 echo '{"message":"Please analyze ./testdata/sample.svg","model_supports_images":false}' | auto-image-fallback
 ```
 
-预期 action：
+这条命令是在模拟“当前模型不支持图片”。如果输出里的 `action` 是 `replace_with_context`，说明 hook 会把图片替换成文本证据包：
 
 ```json
-{"action":"replace_with_context", "...":"..."}
+{"action":"replace_with_context","contexts":["..."]}
 ```
 
-## CLI 用法
+## 手动 CLI 用法
+
+`CLI` 指的是终端命令。通常你不需要手动用它；如果 Claude Code、Codex 或其他 agent 已经自动触发 `image-context` Skill，它会自己调用。
+
+你需要手动用 CLI 的场景主要有两个：
+
+- agent 没有自动触发 Skill。
+- 你想先把一张图片转换成文字，再复制给 DeepSeek 或其他纯文本模型。
+
+把下面命令里的 `screenshot.png` 换成你的真实图片路径。
 
 ```bash
-# 基本 Markdown 证据包
+# 最常用：把图片转成 Markdown 证据包
 image2context screenshot.png
 
-# 把用户问题也写进证据包
+# 如果你有具体问题，把问题也写进去
 image2context error.png --question "为什么构建失败了？"
 
-# 只输出 JSON
+# 如果你要给脚本或 hook 使用，输出 JSON
 image2context screenshot.png --json
+```
 
-# 禁用 OCR，只返回 metadata 和局限性
+输出里的核心字段是 `context_for_text_model`。如果你手动给 DeepSeek 用，复制这段内容即可。
+
+### 高级 CLI 选项
+
+一般用户可以跳过这一段。只有默认 OCR 不理想，或你在调试后端时才需要指定这些参数。
+
+```bash
+# 禁用 OCR，只返回文件信息和局限性
 image2context screenshot.png --ocr-backend none
 
-# 强制指定后端
+# 强制指定 OCR 后端
 image2context screenshot.png --ocr-backend native
 image2context screenshot.png --ocr-backend apple_vision
 image2context screenshot.png --ocr-backend windows_ocr
@@ -161,7 +188,7 @@ image2context screenshot.png --ocr-backend paddleocr
 image2context screenshot.png --ocr-backend tesseract
 ```
 
-语言提示：
+语言提示也属于高级选项：
 
 ```bash
 image2context screenshot.png --vision-languages en-US,zh-Hans,ja-JP

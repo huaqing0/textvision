@@ -113,47 +113,74 @@ The installer creates:
 
 Make sure `~/.local/bin` is in your `PATH`. Restart Claude Code, Codex, or your agent app after installation so it can reload the Skill.
 
-## Quick Verification
+## Post-Install Check
+
+This section is not the normal daily workflow. It only verifies that the install works by using the sample file included in this repository.
+
+First, run the commands from the repository root because `testdata/sample.svg` is part of the repo:
+
+```bash
+cd image-context-bridge
+```
+
+Step 1: check that the `image2context` command works:
 
 ```bash
 image2context testdata/sample.svg --json
 ```
 
-Expected extracted text includes:
+If the output contains the two lines below, the CLI can read the image and extract text:
 
 ```text
 WebSocket handshake timeout
 Reconnecting...
 ```
 
-Check the fallback hook:
+Step 2: check that the fallback hook works:
 
 ```bash
 echo '{"message":"Please analyze ./testdata/sample.svg","model_supports_images":false}' | auto-image-fallback
 ```
 
-Expected action:
+This simulates a model that does not support images. If `action` is `replace_with_context`, the hook is replacing the image with a text evidence packet:
 
 ```json
-{"action":"replace_with_context", "...":"..."}
+{"action":"replace_with_context","contexts":["..."]}
 ```
 
-## CLI Usage
+## Manual CLI Usage
+
+`CLI` means terminal command. Most users do not need to call it manually if Claude Code, Codex, or another agent already triggers the `image-context` Skill.
+
+Use the CLI manually when:
+
+- your agent does not trigger the Skill automatically.
+- you want to convert an image into text first, then paste the result into DeepSeek or another text-only model.
+
+Replace `screenshot.png` with the real path to your image.
 
 ```bash
-# Basic Markdown evidence packet
+# Most common: convert an image into a Markdown evidence packet
 image2context screenshot.png
 
-# Include the user question in the packet
+# Include your specific question in the packet
 image2context error.png --question "Why did the build fail?"
 
-# JSON only
+# Output JSON for scripts or hooks
 image2context screenshot.png --json
+```
 
-# Disable OCR and return metadata/limitations only
+The most important field is `context_for_text_model`. If you are using DeepSeek manually, copy that text into the model.
+
+### Advanced CLI Options
+
+Most users can skip this section. These options are useful only when the default OCR backend is not good enough or when debugging backend behavior.
+
+```bash
+# Disable OCR and return only file information and limitations
 image2context screenshot.png --ocr-backend none
 
-# Force a backend
+# Force an OCR backend
 image2context screenshot.png --ocr-backend native
 image2context screenshot.png --ocr-backend apple_vision
 image2context screenshot.png --ocr-backend windows_ocr
@@ -161,7 +188,7 @@ image2context screenshot.png --ocr-backend paddleocr
 image2context screenshot.png --ocr-backend tesseract
 ```
 
-Language hints:
+Language hints are also advanced options:
 
 ```bash
 image2context screenshot.png --vision-languages en-US,zh-Hans,ja-JP
