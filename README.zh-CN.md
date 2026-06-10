@@ -74,39 +74,54 @@ SVG 文本提取是独立路径，不使用 OCR 后端。
 
 ## 安装
 
-克隆仓库后，在项目目录里运行安装脚本。
+推荐使用一行命令安装，不需要手动 clone 仓库。
 
 macOS 或 Linux：
 
 ```bash
-bash install.sh
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash
 ```
 
 Windows PowerShell：
 
 ```powershell
-.\install.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.ps1 | iex"
 ```
 
 选装 PaddleOCR：
 
 ```bash
-bash install.sh --with-paddleocr
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --with-paddleocr
 ```
 
 ```powershell
-.\install.ps1 -WithPaddleOCR
+powershell -NoProfile -ExecutionPolicy Bypass -Command '$env:IMAGE_CONTEXT_BRIDGE_WITH_PADDLEOCR="1"; irm https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.ps1 | iex'
 ```
 
 如果 Linux 上只想使用 metadata/SVG 提取，或想自己管理 OCR 后端，可以跳过 PaddleOCR：
 
 ```bash
-bash install.sh --no-paddleocr
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --no-paddleocr
+```
+
+也支持手动 clone 后安装：
+
+```bash
+git clone https://github.com/huaqing0/image-context-bridge.git
+cd image-context-bridge
+bash install.sh
+```
+
+```powershell
+git clone https://github.com/huaqing0/image-context-bridge.git
+cd image-context-bridge
+.\install.ps1
 ```
 
 安装脚本会创建：
 
 - `~/.image-context-bridge/`：本地应用文件和 Python 虚拟环境。
+- `~/.image-context-bridge/testdata/sample.svg`：安装后自检用的示例文件。
 - `~/.local/bin/image2context`
 - `~/.local/bin/auto-image-fallback`
 - `~/.agents/skills/image-context/`
@@ -117,18 +132,12 @@ bash install.sh --no-paddleocr
 
 ## 安装后自检
 
-这一段不是日常用法，只是用仓库里的示例文件确认安装成功。
-
-请先进入仓库根目录，因为 `testdata/sample.svg` 是仓库自带的测试文件：
-
-```bash
-cd image-context-bridge
-```
+这一段不是日常用法，只是用安装到 `~/.image-context-bridge/testdata/` 的示例 SVG 确认安装成功。
 
 第一步，确认 `image2context` 命令能运行：
 
 ```bash
-image2context testdata/sample.svg --json
+image2context ~/.image-context-bridge/testdata/sample.svg --json
 ```
 
 如果输出里能看到下面两行，说明 CLI 可以读取图片并提取文本：
@@ -141,7 +150,7 @@ Reconnecting...
 第二步，确认 fallback hook 能运行：
 
 ```bash
-echo '{"message":"Please analyze ./testdata/sample.svg","model_supports_images":false}' | auto-image-fallback
+echo '{"message":"Please analyze ~/.image-context-bridge/testdata/sample.svg","model_supports_images":false}' | auto-image-fallback
 ```
 
 这条命令是在模拟“当前模型不支持图片”。如果输出里的 `action` 是 `replace_with_context`，说明 hook 会把图片替换成文本证据包：

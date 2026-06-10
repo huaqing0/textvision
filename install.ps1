@@ -17,12 +17,13 @@ Write-Host "Installing Image Context Bridge..."
 Write-Host "OS: Windows"
 Write-Host "Install PaddleOCR: $InstallPaddle"
 
-New-Item -ItemType Directory -Force -Path $AppDir, $BinDir, (Join-Path $AppDir "scripts"), (Join-Path $AppDir "hooks"), (Join-Path $AppDir "skills\image-context") | Out-Null
+New-Item -ItemType Directory -Force -Path $AppDir, $BinDir, (Join-Path $AppDir "scripts"), (Join-Path $AppDir "hooks"), (Join-Path $AppDir "skills\image-context"), (Join-Path $AppDir "testdata") | Out-Null
 Copy-Item -Force -Recurse (Join-Path $RootDir "scripts\*") (Join-Path $AppDir "scripts")
 Copy-Item -Force (Join-Path $RootDir "hooks\auto_image_fallback.py") (Join-Path $AppDir "hooks\auto_image_fallback.py")
 Copy-Item -Force (Join-Path $RootDir "requirements.txt") (Join-Path $AppDir "requirements.txt")
 Copy-Item -Force (Join-Path $RootDir "requirements-paddleocr.txt") (Join-Path $AppDir "requirements-paddleocr.txt")
 Copy-Item -Force -Recurse (Join-Path $RootDir "skills\image-context\*") (Join-Path $AppDir "skills\image-context")
+Copy-Item -Force (Join-Path $RootDir "testdata\sample.svg") (Join-Path $AppDir "testdata\sample.svg")
 
 python -m venv $VenvDir
 $Py = Join-Path $VenvDir "Scripts\python.exe"
@@ -67,4 +68,4 @@ Write-Host "- PaddleOCR: optional, install with .\install.ps1 -WithPaddleOCR"
 Write-Host "- SVG: direct text/XML parsing"
 Write-Host ""
 Write-Host "Add $BinDir to PATH if needed. Test with:"
-Write-Host "  image2context C:\path\to\image.png"
+Write-Host "  image2context $AppDir\testdata\sample.svg --json"

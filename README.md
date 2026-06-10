@@ -74,39 +74,54 @@ SVG text extraction is handled separately and does not use an OCR backend.
 
 ## Install
 
-Clone the repository, then run the installer from the project directory.
+Recommended one-line install, no manual clone required.
 
 macOS or Linux:
 
 ```bash
-bash install.sh
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash
 ```
 
 Windows PowerShell:
 
 ```powershell
-.\install.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.ps1 | iex"
 ```
 
 Optional PaddleOCR install:
 
 ```bash
-bash install.sh --with-paddleocr
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --with-paddleocr
 ```
 
 ```powershell
-.\install.ps1 -WithPaddleOCR
+powershell -NoProfile -ExecutionPolicy Bypass -Command '$env:IMAGE_CONTEXT_BRIDGE_WITH_PADDLEOCR="1"; irm https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.ps1 | iex'
 ```
 
 Skip PaddleOCR on Linux if you only want metadata/SVG extraction or another manually installed backend:
 
 ```bash
-bash install.sh --no-paddleocr
+curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --no-paddleocr
+```
+
+Manual clone install is also supported:
+
+```bash
+git clone https://github.com/huaqing0/image-context-bridge.git
+cd image-context-bridge
+bash install.sh
+```
+
+```powershell
+git clone https://github.com/huaqing0/image-context-bridge.git
+cd image-context-bridge
+.\install.ps1
 ```
 
 The installer creates:
 
 - `~/.image-context-bridge/` for the local app files and Python virtual environment.
+- `~/.image-context-bridge/testdata/sample.svg` for post-install verification.
 - `~/.local/bin/image2context`
 - `~/.local/bin/auto-image-fallback`
 - `~/.agents/skills/image-context/`
@@ -117,18 +132,12 @@ Make sure `~/.local/bin` is in your `PATH`. Restart Claude Code, Codex, or your 
 
 ## Post-Install Check
 
-This section is not the normal daily workflow. It only verifies that the install works by using the sample file included in this repository.
-
-First, run the commands from the repository root because `testdata/sample.svg` is part of the repo:
-
-```bash
-cd image-context-bridge
-```
+This section is not the normal daily workflow. It only verifies that the install works by using the sample SVG copied into `~/.image-context-bridge/testdata/`.
 
 Step 1: check that the `image2context` command works:
 
 ```bash
-image2context testdata/sample.svg --json
+image2context ~/.image-context-bridge/testdata/sample.svg --json
 ```
 
 If the output contains the two lines below, the CLI can read the image and extract text:
@@ -141,7 +150,7 @@ Reconnecting...
 Step 2: check that the fallback hook works:
 
 ```bash
-echo '{"message":"Please analyze ./testdata/sample.svg","model_supports_images":false}' | auto-image-fallback
+echo '{"message":"Please analyze ~/.image-context-bridge/testdata/sample.svg","model_supports_images":false}' | auto-image-fallback
 ```
 
 This simulates a model that does not support images. If `action` is `replace_with_context`, the hook is replacing the image with a text evidence packet:
