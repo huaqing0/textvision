@@ -29,7 +29,7 @@ try:
 except Exception:  # pragma: no cover
     Image = None  # type: ignore
 
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 RASTER_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff", ".tif", ".gif"}
 SVG_EXTS = {".svg"}
 SUPPORTED_EXTS = RASTER_EXTS | SVG_EXTS
@@ -452,7 +452,7 @@ def build_context_text(packet: Dict[str, Any]) -> str:
 def build_packet(path: Path, question: Optional[str], include_trace: bool, ocr_backend: str, tesseract_lang: Optional[str], windows_lang: Optional[str], vision_langs: Optional[str] = None) -> Dict[str, Any]:
     ext = path.suffix.lower()
     packet: Dict[str, Any] = {
-        "tool": "image-context-bridge",
+        "tool": "textvision",
         "version": VERSION,
         "question": question,
         "file_info": read_file_info(path),
@@ -499,7 +499,7 @@ def build_packet(path: Path, question: Optional[str], include_trace: bool, ocr_b
 
 
 def print_markdown(packet: Dict[str, Any]) -> None:
-    print("# Image Context Evidence Packet")
+    print("# TextVision Evidence Packet")
     if packet.get("question"):
         print(f"\nUser question: {packet['question']}")
     print("\n## Context for text-only model\n")

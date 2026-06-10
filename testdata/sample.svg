@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="400" height="120" viewBox="0 0 400 120">
   <title>Terminal Error</title>
-  <desc>Sample SVG for image-context-bridge tests</desc>
+  <desc>Sample SVG for textvision tests</desc>
   <text x="20" y="40">WebSocket handshake timeout</text>
   <text x="20" y="80">Reconnecting...</text>
 </svg>

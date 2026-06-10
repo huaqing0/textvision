@@ -8,8 +8,8 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "image2context.py"
-HOOK = ROOT / "hooks" / "auto_image_fallback.py"
+SCRIPT = ROOT / "scripts" / "textvision.py"
+HOOK = ROOT / "hooks" / "textvision_fallback.py"
 SAMPLE_SVG = ROOT / "testdata" / "sample.svg"
 
 
@@ -122,7 +122,7 @@ class TestFallbackHook:
         assert data["action"] == "try_direct_first"
         assert data["image_paths"] == [str(image_path.resolve())]
 
-    def test_missing_image2context_is_structured(self):
+    def test_missing_textvision_is_structured(self):
         env = os.environ.copy()
         env["PATH"] = "/usr/bin:/bin"
         data = _run_hook(
@@ -131,7 +131,7 @@ class TestFallbackHook:
             env=env,
         )
         assert data["action"] == "replace_with_context"
-        assert "image2context command not found" in data["contexts"][0]
+        assert "textvision command not found" in data["contexts"][0]
 
     def test_string_image_support_flag_is_normalized(self):
         data = _run_hook(

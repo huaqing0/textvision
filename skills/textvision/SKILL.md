@@ -1,9 +1,9 @@
 ---
-name: image-context
+name: textvision
 description: Use this skill when a local image path or image file must be handled by a text-only model, an image-unsupported model, or after image input fails.
 ---
 
-# Image Context Bridge
+# TextVision
 
 Use this skill when the current model cannot directly process images, or when image input fails. The skill does not probe model capability by itself; it provides the fallback workflow.
 
@@ -28,20 +28,20 @@ If image capability is unknown and direct image input is available, try direct i
 Before answering image-related questions for a text-only model, run:
 
 ```bash
-image2context <image_path>
+textvision <image_path>
 ```
 
 If the user asked a specific question about the image, include it:
 
 ```bash
-image2context <image_path> --question "<user question>"
+textvision <image_path> --question "<user question>"
 ```
 
-If no local image path is available, explain that `image2context` needs a local file path before it can extract evidence.
+If no local image path is available, explain that `textvision` needs a local file path before it can extract evidence.
 
 ## OCR backend policy
 
-`image2context` chooses the OCR backend automatically:
+`textvision` chooses the OCR backend automatically:
 
 - macOS: Apple Vision OCR by default.
 - Windows: Windows native OCR by default.
@@ -62,7 +62,7 @@ If no local image path is available, explain that `image2context` needs a local 
 
 ## Expected tool output
 
-The `image2context` tool returns:
+The `textvision` tool returns:
 - file information
 - extraction backend used
 - extracted text

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="${IMAGE_CONTEXT_BRIDGE_REPO:-huaqing0/image-context-bridge}"
-REF="${IMAGE_CONTEXT_BRIDGE_REF:-main}"
-URL="${IMAGE_CONTEXT_BRIDGE_TARBALL_URL:-https://codeload.github.com/${REPO}/tar.gz/${REF}}"
-TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/image-context-bridge.XXXXXX")"
+REPO="${TEXTVISION_REPO:-huaqing0/textvision}"
+REF="${TEXTVISION_REF:-main}"
+URL="${TEXTVISION_TARBALL_URL:-https://codeload.github.com/${REPO}/tar.gz/${REF}}"
+TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/textvision.XXXXXX")"
 
 cleanup() {
   rm -rf "$TMP_DIR"
@@ -30,12 +30,12 @@ with open(output, "wb") as f:
     f.write(data)
 PY
   else
-    echo "Error: curl, wget, or python3 is required to download Image Context Bridge." >&2
+    echo "Error: curl, wget, or python3 is required to download TextVision." >&2
     exit 1
   fi
 }
 
-echo "Downloading Image Context Bridge from ${REPO}@${REF}..."
+echo "Downloading TextVision from ${REPO}@${REF}..."
 ARCHIVE="$TMP_DIR/source.tar.gz"
 download "$URL" "$ARCHIVE"
 tar -xzf "$ARCHIVE" -C "$TMP_DIR"

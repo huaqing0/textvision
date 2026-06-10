@@ -1,0 +1,36 @@
+{
+  "name": "textvision",
+  "version": "0.4.0",
+  "description": "Local image-to-text evidence plugin for text-only AI models and agents.",
+  "author": {
+    "name": "huaqing0",
+    "url": "https://github.com/huaqing0"
+  },
+  "homepage": "https://github.com/huaqing0/textvision",
+  "repository": "https://github.com/huaqing0/textvision",
+  "license": "MIT",
+  "keywords": [
+    "textvision",
+    "vision",
+    "ocr",
+    "text-only-models",
+    "image-understanding",
+    "agents",
+    "claude-code",
+    "codex"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "TextVision",
+    "shortDescription": "Give text-only models a local image-understanding fallback",
+    "longDescription": "TextVision converts local images into structured text evidence using OCR, SVG text extraction, metadata, and explicit limitations so text-only AI models and agents can reason about image content without inventing visual details.",
+    "developerName": "huaqing0",
+    "category": "Developer Tools",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://github.com/huaqing0/textvision",
+    "defaultPrompt": [
+      "Use TextVision to process this local screenshot for a text-only model."
+    ],
+    "brandColor": "#111827"
+  }
+}

@@ -1,27 +1,28 @@
-# Image Context Bridge
+# TextVision
 
 [中文](README.zh-CN.md)
 
-Image Context Bridge is a small local workflow for text-only or image-unsupported AI models. It converts an image file into a structured text evidence packet, then asks the model to reason only from extracted text, metadata, and stated limitations.
+TextVision is a local plugin for text-only or image-unsupported AI models. It converts an image file into a structured text evidence packet, then asks the model to reason only from extracted text, metadata, and stated limitations.
 
 It is useful for using models such as DeepSeek, local LLMs, or other text-only agents on screenshots, error dialogs, SVGs, and image files without asking the model to invent visual details it cannot actually see.
 
 ## What It Includes
 
-- `image2context`: a CLI that reads an image path and outputs Markdown or JSON evidence.
-- `auto-image-fallback`: a hook helper that uses caller-provided model capability or image-input failure errors to decide whether to pass an image through or replace it with text context.
-- `skills/image-context`: a Skill wrapper for agents such as Claude Code, Codex, and other skill-aware tools.
+- `textvision`: a CLI that reads an image path and outputs Markdown or JSON evidence.
+- `textvision-fallback`: a hook helper that uses caller-provided model capability or image-input failure errors to decide whether to pass an image through or replace it with text context.
+- `skills/textvision`: a Skill wrapper for agents such as Claude Code, Codex, and other skill-aware tools.
+- `.codex-plugin/plugin.json`: a Codex plugin manifest.
 
-The Skill is only a workflow wrapper. The actual extraction is done by the local `image2context` command.
+The local CLI provides the core extraction capability. The Skill and plugin manifest connect that capability to agent workflows.
 
 ## How It Works
 
 1. You provide a local image path, or an agent detects one in a message.
 2. If the agent already knows the model can handle images, the image can be passed through directly.
-3. If the model is text-only, image input is unavailable, or image input fails, `image2context` extracts OCR/SVG text locally.
+3. If the model is text-only, image input is unavailable, or image input fails, `textvision` extracts OCR/SVG text locally.
 4. The output packet includes file metadata, extracted text, confidence values when available, confirmed facts, limitations, and an instruction not to invent non-text visual details.
 
-Image Context Bridge does not actively probe every model to discover whether it has vision. Automatic fallback depends on the agent or hook providing `model_supports_images`, or on a previous image-input error such as "image input not supported".
+TextVision does not actively probe every model to discover whether it has vision. Automatic fallback depends on the agent or hook providing `model_supports_images`, or on a previous image-input error such as "image input not supported".
 
 Example:
 
@@ -43,7 +44,7 @@ Result:
 
 OCR runs locally. This project does not upload image files, call a cloud OCR API, require an API key, or use a quota.
 
-A separate agent may send the original image to a cloud model before this workflow runs. That behavior is controlled by the agent, not by Image Context Bridge. To avoid it, call `image2context` directly or configure the agent to use the fallback workflow first.
+A separate agent may send the original image to a cloud model before this workflow runs. That behavior is controlled by the agent, not by TextVision. To avoid it, call `textvision` directly or configure the agent to use the fallback workflow first.
 
 ## Supported Inputs
 
@@ -77,27 +78,27 @@ SVG text extraction is handled separately and does not use an OCR backend.
 macOS / Linux:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash
+curl -fsSL https://raw.githubusercontent.com/huaqing0/textvision/main/install-remote.sh | bash
 ```
 
 Default install:
 
-- Runtime: `~/.image-context-bridge/`
-- CLI: `~/.local/bin/image2context`
-- Hook helper: `~/.local/bin/auto-image-fallback`
+- Runtime: `~/.textvision/`
+- CLI: `~/.local/bin/textvision`
+- Hook helper: `~/.local/bin/textvision-fallback`
 
 No agent Skill is installed by default.
 
 Install the Claude Code Skill:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target claude
+curl -fsSL https://raw.githubusercontent.com/huaqing0/textvision/main/install-remote.sh | bash -s -- --target claude
 ```
 
 Install the Codex Skill:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/huaqing0/image-context-bridge/main/install-remote.sh | bash -s -- --target codex
+curl -fsSL https://raw.githubusercontent.com/huaqing0/textvision/main/install-remote.sh | bash -s -- --target codex
 ```
 
 Restart the target agent app after installation.
@@ -107,7 +108,7 @@ Restart the target agent app after installation.
 Run the sample SVG through the CLI:
 
 ```bash
-image2context ~/.image-context-bridge/testdata/sample.svg --json
+textvision ~/.textvision/testdata/sample.svg --json
 ```
 
 If the output contains the two lines below, the CLI is installed and can extract text:
@@ -121,7 +122,7 @@ For Windows, custom paths, PaddleOCR, or manual clone installation, see [INSTALL
 
 ## Manual CLI Usage
 
-`CLI` means terminal command. When Claude Code, Codex, or another agent already triggers the `image-context` Skill, no manual CLI call is required.
+`CLI` means terminal command. When Claude Code, Codex, or another agent already triggers the `textvision` Skill, no manual CLI call is required.
 
 Use the CLI for:
 
@@ -132,13 +133,13 @@ Replace `screenshot.png` with the real image path.
 
 ```bash
 # Most common: convert an image into a Markdown evidence packet
-image2context screenshot.png
+textvision screenshot.png
 
 # Include a specific question in the packet
-image2context error.png --question "Why did the build fail?"
+textvision error.png --question "Why did the build fail?"
 
 # Output JSON for scripts or hooks
-image2context screenshot.png --json
+textvision screenshot.png --json
 ```
 
 The most important field is `context_for_text_model`. For manual DeepSeek use, copy that text into the model.
@@ -149,40 +150,40 @@ Use these options when the default OCR backend is not good enough or when debugg
 
 ```bash
 # Disable OCR and return only file information and limitations
-image2context screenshot.png --ocr-backend none
+textvision screenshot.png --ocr-backend none
 
 # Force an OCR backend
-image2context screenshot.png --ocr-backend native
-image2context screenshot.png --ocr-backend apple_vision
-image2context screenshot.png --ocr-backend windows_ocr
-image2context screenshot.png --ocr-backend paddleocr
-image2context screenshot.png --ocr-backend tesseract
+textvision screenshot.png --ocr-backend native
+textvision screenshot.png --ocr-backend apple_vision
+textvision screenshot.png --ocr-backend windows_ocr
+textvision screenshot.png --ocr-backend paddleocr
+textvision screenshot.png --ocr-backend tesseract
 ```
 
 Language hints are also advanced options:
 
 ```bash
-image2context screenshot.png --vision-languages en-US,zh-Hans,ja-JP
-image2context screenshot.png --windows-lang zh-Hans
-image2context screenshot.png --tesseract-lang eng+chi_sim
+textvision screenshot.png --vision-languages en-US,zh-Hans,ja-JP
+textvision screenshot.png --windows-lang zh-Hans
+textvision screenshot.png --tesseract-lang eng+chi_sim
 ```
 
 ## Skill Usage
 
-After installation with `--target claude`, `--target codex`, or another Skill target, skill-aware agents can load `image-context`.
+After installation with `--target claude`, `--target codex`, or another Skill target, skill-aware agents can load `textvision`.
 
-Automatic triggering is best-effort. The Skill can be invoked implicitly when an agent sees a local image path and the model is known to be text-only or image input has failed. If the model's image capability is unknown and the agent can send images directly, the intended flow is to try direct image input first, then fallback to `image2context` only if direct input fails.
+Automatic triggering is best-effort. The Skill can be invoked implicitly when an agent sees a local image path and the model is known to be text-only or image input has failed. If the model's image capability is unknown and the agent can send images directly, the intended flow is to try direct image input first, then fallback to `textvision` only if direct input fails.
 
 For Claude Code or similar agents, use a prompt like:
 
 ```text
-Use image-context to process ./testdata/sample.svg, then tell me what error text it contains.
+Use textvision to process ./testdata/sample.svg, then tell me what error text it contains.
 ```
 
 For DeepSeek or another text-only model inside an agent, the useful behavior is:
 
 1. The agent sees an image path.
-2. The `image-context` Skill tells it to run `image2context <image_path>`.
+2. The `textvision` Skill tells it to run `textvision <image_path>`.
 3. The agent answers from `context_for_text_model`, not from imagined visual details.
 
 When the agent does not trigger the Skill automatically, run the CLI and paste the output into the model.
@@ -196,24 +197,24 @@ Current trigger boundaries:
 
 ## Hook Usage
 
-`auto-image-fallback` reads JSON from stdin and returns a JSON action. It does not probe the model by itself; it follows `model_supports_images` or `last_error`.
+`textvision-fallback` reads JSON from stdin and returns a JSON action. It does not probe the model by itself; it follows `model_supports_images` or `last_error`.
 
 Known unsupported image input:
 
 ```bash
-echo '{"message":"Check ./error.png","model_supports_images":false}' | auto-image-fallback
+echo '{"message":"Check ./error.png","model_supports_images":false}' | textvision-fallback
 ```
 
 Unknown image support:
 
 ```bash
-echo '{"message":"Check ./error.png","model_supports_images":null}' | auto-image-fallback
+echo '{"message":"Check ./error.png","model_supports_images":null}' | textvision-fallback
 ```
 
 When support is unknown, the hook returns `try_direct_first`. Call it again with `last_error` if direct image input fails:
 
 ```bash
-echo '{"message":"Check ./error.png","model_supports_images":null,"last_error":"image input not supported"}' | auto-image-fallback
+echo '{"message":"Check ./error.png","model_supports_images":null,"last_error":"image input not supported"}' | textvision-fallback
 ```
 
 The hook recognizes common English and Chinese image-unsupported errors, such as "image input not supported" and "不支持图片输入".
@@ -243,7 +244,7 @@ JSON output contains:
 
 ## Troubleshooting
 
-`image2context: command not found`
+`textvision: command not found`
 
 Add `~/.local/bin` to `PATH`, then restart the shell or agent app.
 
@@ -254,13 +255,13 @@ export PATH="$HOME/.local/bin:$PATH"
 Skill does not trigger in Claude Code/Codex
 
 - Restart the agent app after installation.
-- Confirm the Skill files exist under `~/.claude/skills/image-context/` or `~/.codex/skills/image-context/`.
-- Ask explicitly: `Use image-context to process <image_path>`.
+- Confirm the Skill files exist under `~/.claude/skills/textvision/` or `~/.codex/skills/textvision/`.
+- Ask explicitly: `Use textvision to process <image_path>`.
 
 OCR returns no text
 
 - Try a clearer image or crop around the text.
-- Try PaddleOCR: `bash install.sh --with-paddleocr`, then `image2context image.png --ocr-backend paddleocr`.
+- Try PaddleOCR: `bash install.sh --with-paddleocr`, then `textvision image.png --ocr-backend paddleocr`.
 - For SVGs, make sure the text is real SVG text, not converted outlines.
 
 macOS says Swift is missing
@@ -291,13 +292,13 @@ Run tests:
 
 ```bash
 python -m pytest -q
-python -m py_compile scripts/image2context.py hooks/auto_image_fallback.py
+python -m py_compile scripts/textvision.py hooks/textvision_fallback.py
 ```
 
 Run a local smoke test:
 
 ```bash
-python scripts/image2context.py testdata/sample.svg --json
+python scripts/textvision.py testdata/sample.svg --json
 ```
 
 ## License

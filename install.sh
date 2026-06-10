@@ -2,12 +2,12 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
-APP_DIR="${IMAGE_CONTEXT_BRIDGE_APP_DIR:-$HOME/.image-context-bridge}"
-BIN_DIR="${IMAGE_CONTEXT_BRIDGE_BIN_DIR:-$HOME/.local/bin}"
+APP_DIR="${TEXTVISION_APP_DIR:-$HOME/.textvision}"
+BIN_DIR="${TEXTVISION_BIN_DIR:-$HOME/.local/bin}"
 VENV_DIR="$APP_DIR/.venv"
 WITH_PADDLE="auto"
-TARGET="${IMAGE_CONTEXT_BRIDGE_TARGET:-none}"
-CUSTOM_SKILL_DIR="${IMAGE_CONTEXT_BRIDGE_SKILL_DIR:-}"
+TARGET="${TEXTVISION_TARGET:-none}"
+CUSTOM_SKILL_DIR="${TEXTVISION_SKILL_DIR:-}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -54,11 +54,11 @@ while [[ $# -gt 0 ]]; do
       echo "  --target none|claude|codex|agents|all"
       echo "      Skill target to install. Default: none (CLI/runtime only)"
       echo "  --app-dir DIR"
-      echo "      Runtime install directory. Default: ~/.image-context-bridge"
+      echo "      Runtime install directory. Default: ~/.textvision"
       echo "  --bin-dir DIR"
       echo "      Command wrapper directory. Default: ~/.local/bin"
       echo "  --skill-dir DIR"
-      echo "      Custom skill root. Installs DIR/image-context and overrides --target."
+      echo "      Custom skill root. Installs DIR/textvision and overrides --target."
       echo "  --with-paddleocr"
       echo "      Install PaddleOCR backend."
       echo "  --no-paddleocr"
@@ -93,7 +93,7 @@ else
   INSTALL_PADDLE="$WITH_PADDLE"
 fi
 
-echo "Installing Image Context Bridge..."
+echo "Installing TextVision..."
 echo "OS: $OS"
 echo "Install PaddleOCR: $INSTALL_PADDLE"
 echo "Install target: $TARGET"
@@ -103,12 +103,12 @@ if [[ -n "$CUSTOM_SKILL_DIR" ]]; then
   echo "Custom skill dir: $CUSTOM_SKILL_DIR"
 fi
 
-mkdir -p "$APP_DIR/scripts" "$APP_DIR/hooks" "$APP_DIR/skills/image-context" "$APP_DIR/testdata" "$BIN_DIR"
+mkdir -p "$APP_DIR/scripts" "$APP_DIR/hooks" "$APP_DIR/skills/textvision" "$APP_DIR/testdata" "$BIN_DIR"
 cp -r "$ROOT_DIR/scripts/"* "$APP_DIR/scripts/"
-cp "$ROOT_DIR/hooks/auto_image_fallback.py" "$APP_DIR/hooks/auto_image_fallback.py"
+cp "$ROOT_DIR/hooks/textvision_fallback.py" "$APP_DIR/hooks/textvision_fallback.py"
 cp "$ROOT_DIR/requirements.txt" "$APP_DIR/requirements.txt"
 cp "$ROOT_DIR/requirements-paddleocr.txt" "$APP_DIR/requirements-paddleocr.txt"
-cp -R "$ROOT_DIR/skills/image-context/." "$APP_DIR/skills/image-context/"
+cp -R "$ROOT_DIR/skills/textvision/." "$APP_DIR/skills/textvision/"
 cp "$ROOT_DIR/testdata/sample.svg" "$APP_DIR/testdata/sample.svg"
 
 python3 -m venv "$VENV_DIR"
@@ -120,23 +120,23 @@ if [[ "$INSTALL_PADDLE" == "yes" ]]; then
   "$VENV_DIR/bin/python" -m pip install -r "$APP_DIR/requirements-paddleocr.txt"
 fi
 
-cat > "$BIN_DIR/image2context" <<EOF
+cat > "$BIN_DIR/textvision" <<EOF
 #!/usr/bin/env bash
-"$VENV_DIR/bin/python" "$APP_DIR/scripts/image2context.py" "\$@"
+"$VENV_DIR/bin/python" "$APP_DIR/scripts/textvision.py" "\$@"
 EOF
-chmod +x "$BIN_DIR/image2context"
+chmod +x "$BIN_DIR/textvision"
 
-cat > "$BIN_DIR/auto-image-fallback" <<EOF
+cat > "$BIN_DIR/textvision-fallback" <<EOF
 #!/usr/bin/env bash
-"$VENV_DIR/bin/python" "$APP_DIR/hooks/auto_image_fallback.py" "\$@"
+"$VENV_DIR/bin/python" "$APP_DIR/hooks/textvision_fallback.py" "\$@"
 EOF
-chmod +x "$BIN_DIR/auto-image-fallback"
+chmod +x "$BIN_DIR/textvision-fallback"
 
 install_skill_root() {
   local skill_root="$1"
-  mkdir -p "$skill_root/image-context"
-  cp -R "$ROOT_DIR/skills/image-context/." "$skill_root/image-context/"
-  echo "Skill: $skill_root/image-context"
+  mkdir -p "$skill_root/textvision"
+  cp -R "$ROOT_DIR/skills/textvision/." "$skill_root/textvision/"
+  echo "Skill: $skill_root/textvision"
 }
 
 case "$TARGET" in
@@ -163,12 +163,12 @@ case "$TARGET" in
 esac
 
 # Syntax check.
-"$VENV_DIR/bin/python" -m py_compile "$APP_DIR/scripts/image2context.py" "$APP_DIR/hooks/auto_image_fallback.py"
+"$VENV_DIR/bin/python" -m py_compile "$APP_DIR/scripts/textvision.py" "$APP_DIR/hooks/textvision_fallback.py"
 
 echo ""
-echo "Installed Image Context Bridge."
-echo "Command: $BIN_DIR/image2context"
-echo "Hook helper: $BIN_DIR/auto-image-fallback"
+echo "Installed TextVision."
+echo "Command: $BIN_DIR/textvision"
+echo "Hook helper: $BIN_DIR/textvision-fallback"
 echo ""
 echo "Backend policy:"
 echo "- macOS: Apple Vision OCR by default"
@@ -176,4 +176,4 @@ echo "- Linux: PaddleOCR by default unless --no-paddleocr was used"
 echo "- SVG: direct text/XML parsing"
 echo ""
 echo "Make sure ~/.local/bin is in your PATH. Test with:"
-echo "  image2context ~/.image-context-bridge/testdata/sample.svg --json"
+echo "  textvision ~/.textvision/testdata/sample.svg --json"

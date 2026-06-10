@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.0
+
+- Renamed the project to TextVision.
+- Unified the CLI, hook helper, Skill name, install paths, and environment variables around `textvision`.
+- Added a Codex plugin manifest.
+
 ## v0.3.0
 
 - Default OCR policy changed:

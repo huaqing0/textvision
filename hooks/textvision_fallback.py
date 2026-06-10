@@ -3,7 +3,7 @@
 
 This helper is intentionally small and platform-neutral. It receives JSON on stdin
 and decides whether to pass the original message through or replace image paths
-with image2context output.
+with textvision output.
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ BARE_IMAGE_PATH_RE = re.compile(
     r"(?<![\w./\\-])(?P<path>[^\"'`\s<>/\\]+\." + IMAGE_EXT_RE + r")\b",
     re.IGNORECASE,
 )
-IMAGE2CONTEXT_TIMEOUT_SECONDS = 120
+TEXTVISION_TIMEOUT_SECONDS = 120
 
 
 def normalize_image_support(value):
@@ -68,8 +68,8 @@ def find_image_paths(text: str) -> List[str]:
     return list(dict.fromkeys(paths))
 
 
-def image2context(path: str, question: str | None = None) -> str:
-    cmd = ["image2context", path]
+def textvision(path: str, question: str | None = None) -> str:
+    cmd = ["textvision", path]
     if question:
         cmd += ["--question", question]
     try:
@@ -78,17 +78,17 @@ def image2context(path: str, question: str | None = None) -> str:
             text=True,
             capture_output=True,
             check=False,
-            timeout=IMAGE2CONTEXT_TIMEOUT_SECONDS,
+            timeout=TEXTVISION_TIMEOUT_SECONDS,
         )
     except FileNotFoundError:
-        return "image2context command not found. Install Image Context Bridge or add its bin directory to PATH."
+        return "textvision command not found. Install TextVision or add its bin directory to PATH."
     except subprocess.TimeoutExpired:
-        return f"image2context timed out after {IMAGE2CONTEXT_TIMEOUT_SECONDS} seconds for {path}."
+        return f"textvision timed out after {TEXTVISION_TIMEOUT_SECONDS} seconds for {path}."
     except Exception as exc:
-        return f"image2context failed to start for {path}: {exc}"
+        return f"textvision failed to start for {path}: {exc}"
     if proc.returncode != 0:
         detail = proc.stderr.strip() or proc.stdout.strip() or f"exit code {proc.returncode}"
-        return f"image2context failed for {path}: {detail}"
+        return f"textvision failed for {path}: {detail}"
     return proc.stdout.strip()
 
 
@@ -141,7 +141,7 @@ def main() -> int:
         return 0
 
     if model_supports_images is False or failed_due_to_image:
-        contexts = [image2context(p, question=message) for p in paths]
+        contexts = [textvision(p, question=message) for p in paths]
         emit({"action": "replace_with_context", "contexts": contexts})
         return 0
 

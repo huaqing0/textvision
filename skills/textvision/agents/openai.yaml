@@ -1,0 +1,6 @@
+interface:
+  display_name: "TextVision"
+  short_description: "Fallback workflow that converts local images into OCR-based text context for text-only models."
+  default_prompt: "When image input is unsupported or fails, use textvision to convert the local image into a text evidence packet before answering."
+policy:
+  allow_implicit_invocation: true
